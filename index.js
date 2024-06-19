@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-// import { RectAreaLight, RectAreaLightHelper } from "three/examples/jsm/lights/RectAreaLight.js";
 
 // Inisialisasi scene, kamera, dan renderer
 const scene = new THREE.Scene();
@@ -73,6 +72,9 @@ function onKeyDown(event) {
     case "p":
       onv = !onv; // Toggle nilai onv untuk mengubah video
       updateVideoTexture();
+      break;
+    case "i":
+      toggleLights(); // Toggle lampu ketika tombol 'i' ditekan
       break;
     case "m":
       toggleMute(); // Mengubah status mute video
@@ -196,12 +198,12 @@ function addVideoTexture(videoSrc, width, height, position, rotation, id) {
   scene.add(videoMesh);
 
   // Tambahkan RectAreaLight di posisi video
-  rectAreaLight = new RectAreaLight(0xffffff, 10, width, height);
-  rectAreaLight.position.set(position.x, position.y, position.z + 1); // Sedikit di depan layar
-  rectAreaLight.rotation.set(rotation.x, rotation.y, rotation.z);
+  rectAreaLight = new THREE.RectAreaLight(0xffffff, 10, width, height);
+  rectAreaLight.position.set(position.x, position.y, position.z - 1); // Sedikit di depan layar
+  rectAreaLight.rotation.set(rotation.x, -rotation.y, rotation.z);
   scene.add(rectAreaLight);
 
-  const rectLightHelper = new RectAreaLightHelper(rectAreaLight);
+  const rectLightHelper = new THREE.RectAreaLight(rectAreaLight);
   rectAreaLight.add(rectLightHelper);
 }
 
@@ -236,6 +238,18 @@ function updateVideoTexture() {
     );
   } else {
     removeVideoTexture();
+  }
+}
+
+// Fungsi untuk toggle lampu
+let lightsOn = true;
+function toggleLights() {
+  lightsOn = !lightsOn;
+  ambientLight.visible = lightsOn;
+  directionalLight.visible = lightsOn;
+  pointLight.visible = lightsOn;
+  if (rectAreaLight) {
+    rectAreaLight.visible = lightsOn;
   }
 }
 
