@@ -35,6 +35,8 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true; // Menerima bayangan
 scene.add(ground);
 
+let dog;
+
 // Movement variables
 let moveForward = false;
 let moveBackward = false;
@@ -131,6 +133,9 @@ function updateMovement() {
     // Jika bertabrakan, kembalikan kamera ke posisi sebelumnya
     cameraPosition.copy(previousCameraPosition);
   }
+  // dog.position.x = camera.position.x
+  // dog.position.y = 12
+  // dog.position.z = camera.position.z-100
 }
 
 // Array untuk menyimpan bounding box objek
@@ -174,6 +179,8 @@ const loadObject = (objPath, scale, position, rotation, callback) => {
     }
   );
 };
+
+dog = loadObject("./model/dog/source/dog.glb", 50, {x: camera.position.x, y: 12, z: camera.position.z-100}, {x: 0, y: 0, z: 0});
 
 loadObject("./model/KeyBoard.glb", 50, { x: 150, y: 33, z: 121 }, { x: 0, y: Math.PI / 2, z: 0 });
 loadObject("./model/bed.glb", 10, { x: -110, y: -55, z: 80 }, { x: 0, y: 0, z: 0 });
@@ -432,11 +439,31 @@ function checkCollision(cameraPosition) {
   return false;
 }
 
+let dogDirection = 1; // 1 untuk ke kanan, -1 untuk ke kiri
+const dogSpeed = 0.1; // Kecepatan berjalan anjing
+const dogTurnAngle = Math.PI / 2; // Sudut putar anjing
+const dogBoundary = worldScale / 2 - 10; // Batas pergerakan anjing
+
+function moveDog() {
+  if (dog) {
+    // Perbarui posisi anjing
+    dog.position.x += dogSpeed * dogDirection;
+
+    // Jika anjing mencapai batas, putar dan ubah arah
+    if (Math.abs(dog.position.x) > dogBoundary) {
+      dogDirection *= -1; // Ubah arah
+      dog.rotation.y += dogTurnAngle; // Putar anjing 90 derajat
+    }
+  }
+}
+
+
 // Fungsi untuk animasi
 function animate() {
   requestAnimationFrame(animate);
 
   updateMovement();
+  moveDog();
 
   renderer.render(scene, camera);
 }
