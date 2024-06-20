@@ -100,7 +100,10 @@ function onKeyUp(event) {
 }
 
 // Fungsi untuk memperbarui pergerakan kamera
+let previousCameraPosition = new THREE.Vector3();
 function updateMovement() {
+  previousCameraPosition.copy(controls.getObject().position);
+
   const speedFactor = speed * (camera.position.y / 2);
 
   if (moveForward) controls.moveForward(speedFactor);
@@ -122,7 +125,16 @@ function updateMovement() {
     -worldScale / 2,
     worldScale / 2
   );
+
+  // Periksa tabrakan
+  if (checkCollision(cameraPosition)) {
+    // Jika bertabrakan, kembalikan kamera ke posisi sebelumnya
+    cameraPosition.copy(previousCameraPosition);
+  }
 }
+
+// Array untuk menyimpan bounding box objek
+let boundingBoxes = [];
 
 // Fungsi untuk memuat objek 3D dari file GLB
 const loadObject = (objPath, scale, position, rotation, callback) => {
@@ -147,6 +159,10 @@ const loadObject = (objPath, scale, position, rotation, callback) => {
 
       scene.add(object);
 
+      // Tambahkan bounding box untuk objek
+      const box = new THREE.Box3().setFromObject(object);
+      boundingBoxes.push(box);
+
       if (callback) callback(object);
 
     },
@@ -159,8 +175,30 @@ const loadObject = (objPath, scale, position, rotation, callback) => {
   );
 };
 
-loadObject("./model/Table.glb", 8, { x: 100, y: -10, z: 50 }, { x: 0, y: -Math.PI / 2, z: 0 });
-loadObject("./model/TV.gltf", 40, { x: 100, y: 27, z: 45 }, { x: 0, y: -Math.PI, z: 0 });
+loadObject("./model/KeyBoard.glb", 50, { x: 150, y: 33, z: 121 }, { x: 0, y: Math.PI / 2, z: 0 });
+loadObject("./model/bed.glb", 10, { x: -110, y: -55, z: 80 }, { x: 0, y: 0, z: 0 });
+// loadObject("./model/sofa.glb", 15, { x: 100, y: -0, z: -60 }, { x: 0, y: 3.2, z: 0 });
+loadObject("./model/PS5.glb", 17, { x: 150, y: 30, z: 80 }, { x: 0, y: 0, z: 0 });
+loadObject("./model/pc.glb", 1, { x: 145, y: 35, z: 145 }, { x: 0, y: 2, z: 0 });
+// loadObject("./model/Table.glb", 10, { x: 100, y: -15, z: -140 }, { x: 0, y: 0, z: 0 });
+// TV 1
+// loadObject("./model/TV.gltf", 30, { x: 100, y: 33, z: -135 }, { x: 0, y: -7.8, z: 0 });
+loadObject("./model/chair.gltf", 100, { x: 115, y: 3, z: 130 }, { x: 0, y: 2, z: 0 });
+loadObject("./model/copia.glb", 50, { x: 120, y: 13, z: 110 }, { x: 0, y: 2, z: 0 });
+// loadObject("./model/Tables.glb", 70, { x: 150, y: 0, z: 123 }, { x: 0, y: Math.PI, z: 0 });
+loadObject("./model/Office Chair.glb", 100, { x: 100, y: 3, z: -150 }, { x: 0, y: Math.PI, z: 0 });
+// TV 2
+// loadObject("./model/TV.gltf", 30, { x: 160, y: 35, z: 123 }, { x: 0, y: 15.8, z: 0 });
+loadObject("./model/Table.glb", 10, { x: -154, y: -15, z: -20 }, { x: 0, y: Math.PI / 2, z: 0 });
+loadObject("./model/aquarium.glb", 0.1, { x: -154, y: 41, z: -20 }, { x: 0, y: Math.PI , z: 0 });
+// loadObject("./model/sofa.gltf", 40, { x: 100, y: 0, z: 45 }, { x: 0, y: Math.PI, z: 0 });
+// loadObject("./model/sofa.gltf", 40, { x: 100, y: 0, z: 45 }, { x: 0, y: -Math.PI/2, z: 0 });
+
+loadObject("./model/Table.glb", 8, { x: 150, y: -10, z: 50 }, { x: 0, y: -Math.PI / 2, z: 0 });
+loadObject("./model/TV.gltf", 40, { x: 150, y: 27, z: 45 }, { x: 0, y: -Math.PI, z: 0 });
+loadObject("./model/sofa.glb", 18, { x: -10, y: 0, z: 45 }, { x: 0, y: Math.PI/2, z: 0 });
+// loadObject("./model/sofa.gltf", 40, { x: 100, y: 0, z: 45 }, { x: 0, y: Math.PI, z: 0 });
+// loadObject("./model/sofa.gltf", 40, { x: 100, y: 0, z: 45 }, { x: 0, y: -Math.PI/2, z: 0 });
 
 // Fungsi untuk memutar ulang video pertama
 function playFirstVideo() {
@@ -173,6 +211,7 @@ function playFirstVideo() {
 
 // Variabel untuk RectAreaLight
 let rectAreaLight;
+let spins;
 
 // Fungsi untuk menambahkan video sebagai tekstur
 function addVideoTexture(videoSrc, width, height, position, rotation, id) {
@@ -198,14 +237,48 @@ function addVideoTexture(videoSrc, width, height, position, rotation, id) {
   scene.add(videoMesh);
 
   // Tambahkan RectAreaLight di posisi video
-  rectAreaLight = new THREE.RectAreaLight(0xffffff, 10, width, height);
-  rectAreaLight.position.set(position.x, position.y, position.z - 1); // Sedikit di depan layar
+  rectAreaLight = new THREE.RectAreaLight(0xffffff, 5, width, height);
+  rectAreaLight.position.set(position.x, position.y, position.z + 1); // Sedikit di depan layar
   rectAreaLight.rotation.set(rotation.x, -rotation.y, rotation.z);
   scene.add(rectAreaLight);
 
   const rectLightHelper = new THREE.RectAreaLight(rectAreaLight);
   rectAreaLight.add(rectLightHelper);
+
 }
+
+function addlayar(videoSrc, width, height, position, rotation, id) {
+    const video = document.createElement('video');
+    video.id = id;
+    video.src = videoSrc;
+    video.loop = true;
+    video.muted = true;
+    video.play();
+  
+    const videoTexture = new THREE.VideoTexture(video);
+    const videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+  
+    const videoGeometry = new THREE.PlaneGeometry(width, height);
+    const videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    videoMesh.name = "bioskop"; // Memberi nama objek untuk mengaksesnya nanti
+  
+    videoMesh.position.set(position.x, position.y, position.z);
+    if (rotation) {
+      videoMesh.rotation.set(rotation.x, rotation.y, rotation.z);
+    }
+  
+    scene.add(videoMesh);
+  
+    // Tambahkan RectAreaLight di posisi video
+    spins = new THREE.RectAreaLight(0xff00ff, 1, width, height);
+    spins.position.set(position.x, position.y, position.z + 1); // Sedikit di depan layar
+    spins.rotation.set(rotation.x, -rotation.y, rotation.z);
+    scene.add(spins);
+  
+    const rectLightHelper = new THREE.RectAreaLight(spins);
+    spins.add(rectLightHelper);
+  
+  }
 
 // Fungsi untuk menghapus video dari scene
 function removeVideoTexture() {
@@ -223,6 +296,21 @@ function removeVideoTexture() {
     rectAreaLight.dispose();
     rectAreaLight = null;
   }
+
+  const pa = scene.getObjectByName("v1");
+  if (pa) {
+    scene.remove(pa);
+    pa.material.map.dispose(); // Hapus texture yang ada
+    pa.geometry.dispose();
+    pa.material.dispose();
+  }
+
+  // Hapus RectAreaLight jika ada
+  if (spins) {
+    scene.remove(spins);
+    spins.dispose();
+    spins = null;
+  }
 }
 
 // Fungsi untuk memperbarui video texture berdasarkan nilai onv
@@ -232,10 +320,18 @@ function updateVideoTexture() {
       "./model/Y2meta.app-PlayStation Studios Opening Animation-(1080p).mp4", // Path ke file video
       40, // Lebar layar TV
       25, // Tinggi layar TV
-      { x: 97.9, y: 42, z: 45.1 }, // Posisi layar TV
+      { x: 147.99, y: 42, z: 45.1 }, // Posisi layar TV
       { x: 0, y: -Math.PI / 2, z: 0 }, // Rotasi layar TV
       "video1" // ID video untuk mengontrolnya
     );
+    // addlayar(
+    //     "./model/vidio", // Path ke file video
+    //       400, // Lebar layar TV
+    //       400, // Tinggi layar TV
+    //       { x: 0, y: 1000, z: -0.1 }, // Posisi layar TV
+    //       { x: -Math.PI / 2, y: 0, z: 0 }, // Rotasi layar TV
+    //       "v1" // ID video untuk mengontrolnya)
+    //   )
   } else {
     removeVideoTexture();
   }
@@ -248,8 +344,11 @@ function toggleLights() {
   ambientLight.visible = lightsOn;
   directionalLight.visible = lightsOn;
   pointLight.visible = lightsOn;
+  
+
   if (rectAreaLight) {
     rectAreaLight.visible = lightsOn;
+    spins.visible = lightsOn;
   }
 }
 
@@ -290,7 +389,7 @@ scene.add(roof);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Meningkatkan intensitas cahaya ambient
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7); // Cahaya directional
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5); // Cahaya directional
 directionalLight.position.set(10, 120, 80);
 directionalLight.castShadow = true; // Mengaktifkan bayangan pada directional light
 scene.add(directionalLight);
@@ -302,12 +401,27 @@ directionalLight.shadow.camera.bottom = -worldScale / 2;
 directionalLight.shadow.camera.near = 0.4;
 directionalLight.shadow.camera.far = 200;
 
-const pointLight = new THREE.PointLight(0xffffff, 1.0); // Cahaya point light
+const pointLight = new THREE.PointLight(0xffffff, 0.3); // Cahaya point light
 pointLight.position.set(0, 100, 50);
 pointLight.castShadow = true; // Mengaktifkan bayangan pada point light
 pointLight.distance = 100; // Mengatur jarak dimana cahaya mulai memudar
 pointLight.decay = 2; // Mengatur bagaimana cahaya memudar dengan jarak
 scene.add(pointLight);
+
+// Fungsi untuk memeriksa tabrakan antara kamera dan objek
+function checkCollision(cameraPosition) {
+  const cameraBox = new THREE.Box3().setFromCenterAndSize(
+    cameraPosition,
+    new THREE.Vector3(3, 10, 3) // Ukuran bounding box kamera
+  );
+
+  for (const box of boundingBoxes) {
+    if (cameraBox.intersectsBox(box)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 // Fungsi untuk animasi
 function animate() {
