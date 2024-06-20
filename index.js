@@ -12,7 +12,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.y = 50; // Menempatkan kamera sedikit di atas permukaan
+camera.position.y = 20;
+camera.position.z = -30; // Menempatkan kamera sedikit di atas permukaan
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -76,7 +77,9 @@ function onKeyDown(event) {
       updateVideoTexture();
       break;
     case "i":
-      toggleLights(); // Toggle lampu ketika tombol 'i' ditekan
+    //   toggleLights(); // Toggle lampu ketika tombol 'i' ditekan
+      video.play();
+      addVideoTexture();
       break;
     case "m":
       toggleMute(); // Mengubah status mute video
@@ -185,7 +188,7 @@ dog = loadObject("./model/dog/source/dog.glb", 50, {x: camera.position.x, y: 12,
 loadObject("./model/KeyBoard.glb", 50, { x: 150, y: 33, z: 121 }, { x: 0, y: Math.PI / 2, z: 0 });
 loadObject("./model/bed.glb", 10, { x: -110, y: -55, z: 80 }, { x: 0, y: 0, z: 0 });
 // loadObject("./model/sofa.glb", 15, { x: 100, y: -0, z: -60 }, { x: 0, y: 3.2, z: 0 });
-loadObject("./model/PS5.glb", 17, { x: 150, y: 30, z: 80 }, { x: 0, y: 0, z: 0 });
+// loadObject("./model/PS5.glb", 17, { x: 150, y: 30, z: 80 }, { x: 0, y: 0, z: 0 });
 loadObject("./model/pc.glb", 1, { x: 145, y: 35, z: 145 }, { x: 0, y: 2, z: 0 });
 // loadObject("./model/Table.glb", 10, { x: 100, y: -15, z: -140 }, { x: 0, y: 0, z: 0 });
 // TV 1
@@ -200,6 +203,22 @@ loadObject("./model/Table.glb", 10, { x: -154, y: -15, z: -20 }, { x: 0, y: Math
 loadObject("./model/aquarium.glb", 0.1, { x: -154, y: 41, z: -20 }, { x: 0, y: Math.PI , z: 0 });
 // loadObject("./model/sofa.gltf", 40, { x: 100, y: 0, z: 45 }, { x: 0, y: Math.PI, z: 0 });
 // loadObject("./model/sofa.gltf", 40, { x: 100, y: 0, z: 45 }, { x: 0, y: -Math.PI/2, z: 0 });
+const fishList = [];
+loadObject("./model/fish.glb", 1, { x: -180, y: 52, z: -7 }, { x: 0, y: Math.PI / 2 , z: 0 }, (loadedFish) => {
+    fishList.push({ fish: loadedFish, direction: Math.PI / 2 });
+  });
+  // Ikan 2
+  loadObject("./model/fish.glb", 1, { x: -180, y: 60, z: -18 }, { x: 0, y: Math.PI / 2 , z: 0 }, (loadedFish) => {
+    fishList.push({ fish: loadedFish, direction: Math.PI / 2 });
+  });
+  // Ikan 3
+  loadObject("./model/fish.glb", 1, { x: -130, y: 52, z: -35 }, { x: 0, y: -Math.PI / 2 , z: 0 }, (loadedFish) => {
+    fishList.push({ fish: loadedFish, direction: -Math.PI / 2 });
+  });
+  // Ikan 4
+  loadObject("./model/fish.glb", 1, { x: -130, y: 56, z: -25 }, { x: 0, y: -Math.PI / 2 , z: 0 }, (loadedFish) => {
+    fishList.push({ fish: loadedFish, direction: -Math.PI / 2 });
+  });
 
 loadObject("./model/Table.glb", 8, { x: 150, y: -10, z: 50 }, { x: 0, y: -Math.PI / 2, z: 0 });
 loadObject("./model/TV.gltf", 40, { x: 150, y: 27, z: 45 }, { x: 0, y: -Math.PI, z: 0 });
@@ -277,7 +296,7 @@ function addlayar(videoSrc, width, height, position, rotation, id) {
     scene.add(videoMesh);
   
     // Tambahkan RectAreaLight di posisi video
-    spins = new THREE.RectAreaLight(0xff00ff, 1, width, height);
+    spins = new THREE.RectAreaLight(0xffff00, 1, width, height);
     spins.position.set(position.x, position.y, position.z + 1); // Sedikit di depan layar
     spins.rotation.set(rotation.x, -rotation.y, rotation.z);
     scene.add(spins);
@@ -331,21 +350,21 @@ function updateVideoTexture() {
       { x: 0, y: -Math.PI / 2, z: 0 }, // Rotasi layar TV
       "video1" // ID video untuk mengontrolnya
     );
-    // addlayar(
-    //     "./model/vidio", // Path ke file video
-    //       400, // Lebar layar TV
-    //       400, // Tinggi layar TV
-    //       { x: 0, y: 1000, z: -0.1 }, // Posisi layar TV
-    //       { x: -Math.PI / 2, y: 0, z: 0 }, // Rotasi layar TV
-    //       "v1" // ID video untuk mengontrolnya)
-    //   )
+    addlayar(
+        "./model/vidio", // Path ke file video
+          400, // Lebar layar TV
+          400, // Tinggi layar TV
+          { x: 0, y: 1000, z: -0.1 }, // Posisi layar TV
+          { x: -Math.PI / 2, y: 0, z: 0 }, // Rotasi layar TV
+          "v1" // ID video untuk mengontrolnya)
+      )
   } else {
     removeVideoTexture();
   }
 }
 
 // Fungsi untuk toggle lampu
-let lightsOn = true;
+let lightsOn = false;
 function toggleLights() {
   lightsOn = !lightsOn;
   ambientLight.visible = lightsOn;
@@ -357,6 +376,31 @@ function toggleLights() {
     rectAreaLight.visible = lightsOn;
     spins.visible = lightsOn;
   }
+}
+const fishSpeed = 0.2;
+function updateFishMovement() {
+    fishList.forEach((fishObj) => {
+      const fish = fishObj.fish;
+      const direction = fishObj.direction;
+  
+      if (direction === Math.PI / 2) {
+        fish.position.z -= fishSpeed;
+        if (fish.position.z <= -40) {
+          fish.rotation.y = -Math.PI / 2;
+          fish.position.x = -130;
+          fish.position.z = -35;
+          fishObj.direction = -Math.PI / 2;
+        }
+      } else {
+        fish.position.z += fishSpeed;
+        if (fish.position.z >= -7) {
+          fish.rotation.y = Math.PI / 2;
+          fish.position.x = -180;
+          fish.position.z = -7;
+          fishObj.direction = Math.PI / 2;
+        }
+      }
+    });
 }
 
 // Membuat dinding
@@ -463,6 +507,7 @@ function animate() {
   requestAnimationFrame(animate);
 
   updateMovement();
+  updateFishMovement();
   moveDog();
 
   renderer.render(scene, camera);
