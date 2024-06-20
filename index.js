@@ -376,6 +376,15 @@ wall4.position.set(-worldScale / 2, 50, 0);
 wall4.rotation.y = Math.PI / 2;
 wall4.receiveShadow = true; // Menerima bayangan
 scene.add(wall4);
+const wa1 = new THREE.Box3().setFromObject(wall1);
+boundingBoxes.push(wa1);
+const wa2 = new THREE.Box3().setFromObject(wall2);
+boundingBoxes.push(wa2);
+const wa3 = new THREE.Box3().setFromObject(wall3);
+boundingBoxes.push(wa3);
+const wa4 = new THREE.Box3().setFromObject(wall4);
+boundingBoxes.push(wa4);
+
 
 // Membuat atap
 const roofGeometry = new THREE.BoxGeometry(worldScale, 10, worldScale);
